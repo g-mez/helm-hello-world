@@ -1,6 +1,6 @@
 apiVersion: v2
-name: hello-world
-description: A minimal Helm chart for testing volumes, ConfigMaps, and Secrets
+name: hello
+description: A simple hello world test chart
 type: application
-version: 0.2.0
+version: 0.1.0
 appVersion: "1.0"

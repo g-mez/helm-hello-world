@@ -1,35 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "hello-world.fullname" . }}
-  labels:
-    app: {{ include "hello-world.name" . }}
+  name: {{ include "hello.fullname" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "hello-world.name" . }}
+      app: {{ include "hello.name" . }}
   template:
     metadata:
       labels:
-        app: {{ include "hello-world.name" . }}
+        app: {{ include "hello.name" . }}
     spec:
       containers:
-        - name: hello-world
+        - name: hello
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: {{ toJson .Values.container.command }}
+          command:
+            - "sh"
+            - "-c"
+            - "echo Hello World && sleep 3600"
+
           volumeMounts:
-            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- if .Values.license.enabled }}
+            - name: license-volume
+              mountPath: {{ .Values.license.mountPath }}
+              subPath: license.dat
+            {{- end }}
+
       volumes:
-        {{- toYaml .Values.volumes | nindent 8 }}
-        {{- if .Values.configMap.enabled }}
-        - name: config-volume
-          configMap:
-            name: {{ .Values.configMap.name }}
-        {{- end }}
-        {{- if .Values.secret.enabled }}
-        - name: secret-volume
+        {{- if .Values.license.enabled }}
+        - name: license-volume
           secret:
-            secretName: {{ .Values.secret.name }}
+            secretName: {{ .Values.license.secretName }}
         {{- end }}

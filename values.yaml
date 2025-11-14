@@ -7,35 +7,12 @@ image:
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 80
 
-container:
-  command: ["sh", "-c", "while true; do echo Hello, World!; sleep 10; done"]
-
-# ConfigMap test
-configMap:
+license:
   enabled: true
-  name: hello-config
-  data:
-    test.conf: |
-      message=Hello from ConfigMap!
-
-# Secret test
-secret:
-  enabled: true
-  name: hello-secret
-  data:
-    password: "supersecret" # base64-encoded automatically by Helm
-
-# Example additional volumes
-volumes:
-  - name: test-volume
-    emptyDir: {}
-
-volumeMounts:
-  - name: test-volume
-    mountPath: /data
-  - name: config-volume
-    mountPath: /config
-  - name: secret-volume
-    mountPath: /secrets
+  secretName: hello-license
+  mountPath: /etc/license/license.dat
+  ## uncommented following lines to create secret with specified "data"
+  data: |
+    This is my license file
