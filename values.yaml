@@ -9,10 +9,13 @@ service:
   type: ClusterIP
   port: 80
 
-license:
-  enabled: true
-  secretName: hello-license
-  mountPath: /etc/license/license.dat
-  ## uncommented following lines to create secret with specified "data"
-  data: |
-    This is my license file
+licenseUpdate:
+  enabled: false 
+  secretName: hello-license-import 
+  # data: 
+  #   license: |
+  #     < changeme, provide license file content>
+  #   auth:
+  #     username: admin
+  #     password: changeme
+

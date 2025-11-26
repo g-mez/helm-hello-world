@@ -1,0 +1,67 @@
+{{- if .Values.license.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "hello.fullname" . }}-license-import
+  labels:
+    app.kubernetes.io/name: {{ include "hello.name" . }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: license-import
+          image: registry1.dso.mil/ironbank/opensource/curl/curl:latest
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "[INFO] Checking if hello license is already installed..."
+
+              STATUS=$(curl -s -k -u "${HW_ADMIN_USERNAME}:${HW_ADMIN_PASSWORD}" \
+                https://{{ include "hello.fullname" . }}:8443/api/admin/license | grep -c "expiration")
+
+              if [ "$STATUS" -gt 0 ]; then
+                echo "[INFO] License already installed. Skipping import."
+                exit 0
+              fi
+
+              echo "[INFO] Applying new license..."
+              curl -k -u "${HW_ADMIN_USERNAME}:${HW_ADMIN_PASSWORD}" \
+                -F "license=@/license/license.dat" \
+                https://{{ include "hello.fullname" . }}:8443/api/admin/license/import
+
+              echo "[INFO] License import complete."
+
+          env:
+            - name: HW_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.license.secretName }}
+                  key: username
+            - name: HW_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.license.secretName }}
+                  key: password
+
+          volumeMounts:
+            - name: hello-license-volume
+              mountPath: /license
+              readOnly: true
+
+      volumes:
+        - name: hello-license-volume
+          secret:
+            secretName: {{ .Values.license.secretName }}
+            items:
+              - key: license
+                path: license.dat
+{{- end }}
